@@ -9,20 +9,23 @@ import threading
 import numpy as np
 import keyboard as kb
 from src.routine.components import Point
+from src.modules.listener import Listener
 
 
 # A rune's symbol on the minimap
 RUNE_RANGES = (
     ((141, 148, 245), (146, 158, 255)),
 )
-rune_filtered = utils.filter_color(cv2.imread('assets/rune_template.png'), RUNE_RANGES)
+rune_filtered = utils.filter_color(
+    cv2.imread('assets/rune_template.png'), RUNE_RANGES)
 RUNE_TEMPLATE = cv2.cvtColor(rune_filtered, cv2.COLOR_BGR2GRAY)
 
 # Other players' symbols on the minimap
 OTHER_RANGES = (
     ((0, 245, 215), (10, 255, 255)),
 )
-other_filtered = utils.filter_color(cv2.imread('assets/other_template.png'), OTHER_RANGES)
+other_filtered = utils.filter_color(cv2.imread(
+    'assets/other_template.png'), OTHER_RANGES)
 OTHER_TEMPLATE = cv2.cvtColor(other_filtered, cv2.COLOR_BGR2GRAY)
 
 # The Elite Boss's warning sign
@@ -68,17 +71,21 @@ class Notifier:
                 # Check for unexpected black screen
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 if np.count_nonzero(gray < 15) / height / width > self.room_change_threshold:
-                    self._alert('siren')
+                    self._ping('siren')
+                    Listener().toggle_enabled()
 
                 # Check for elite warning
-                elite_frame = frame[height // 4:3 * height // 4, width // 4:3 * width // 4]
-                elite = utils.multi_match(elite_frame, ELITE_TEMPLATE, threshold=0.9)
+                elite_frame = frame[height // 4:3 *
+                                    height // 4, width // 4:3 * width // 4]
+                elite = utils.multi_match(
+                    elite_frame, ELITE_TEMPLATE, threshold=0.9)
                 if len(elite) > 0:
                     self._alert('siren')
 
                 # Check for other players entering the map
                 filtered = utils.filter_color(minimap, OTHER_RANGES)
-                others = len(utils.multi_match(filtered, OTHER_TEMPLATE, threshold=0.5))
+                others = len(utils.multi_match(
+                    filtered, OTHER_TEMPLATE, threshold=0.5))
                 config.stage_fright = others > 0
                 if others != prev_others:
                     if others > prev_others:
@@ -89,22 +96,25 @@ class Notifier:
                 now = time.time()
                 if not config.bot.rune_active:
                     filtered = utils.filter_color(minimap, RUNE_RANGES)
-                    matches = utils.multi_match(filtered, RUNE_TEMPLATE, threshold=0.9)
+                    matches = utils.multi_match(
+                        filtered, RUNE_TEMPLATE, threshold=0.9)
                     rune_start_time = now
                     if matches and config.routine.sequence:
                         abs_rune_pos = (matches[0][0], matches[0][1])
-                        config.bot.rune_pos = utils.convert_to_relative(abs_rune_pos, minimap)
-                        distances = list(map(distance_to_rune, config.routine.sequence))
+                        config.bot.rune_pos = utils.convert_to_relative(
+                            abs_rune_pos, minimap)
+                        distances = list(
+                            map(distance_to_rune, config.routine.sequence))
                         index = np.argmin(distances)
                         config.bot.rune_closest_pos = config.routine[index].location
                         config.bot.rune_active = True
-                        self._ping('rune_appeared', volume=0.75)
+                        self._ping('rune_appeared')
                 elif now - rune_start_time > self.rune_alert_delay:     # Alert if rune hasn't been solved
                     config.bot.rune_active = False
                     self._alert('siren')
             time.sleep(0.05)
 
-    def _alert(self, name, volume=0.75):
+    def _alert(self, name, volume=0.3):
         """
         Plays an alert to notify user of a dangerous event. Stops the alert
         once the key bound to 'Start/stop' is pressed.
@@ -121,7 +131,7 @@ class Notifier:
         time.sleep(2)
         config.listener.enabled = True
 
-    def _ping(self, name, volume=0.5):
+    def _ping(self, name, volume=0.1):
         """A quick notification for non-dangerous events."""
 
         self.mixer.load(get_alert_path(name))

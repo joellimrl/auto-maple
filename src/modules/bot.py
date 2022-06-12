@@ -37,7 +37,8 @@ class Bot(Configurable):
 
         self.rune_active = False
         self.rune_pos = (0, 0)
-        self.rune_closest_pos = (0, 0)      # Location of the Point closest to rune
+        # Location of the Point closest to rune
+        self.rune_closest_pos = (0, 0)
         self.submodules = []
         self.module_name = None
         self.buff = components.Buff()
@@ -59,7 +60,7 @@ class Bot(Configurable):
         :return:    None
         """
 
-        self.update_submodules()
+        # self.update_submodules()
         print('\n[~] Started main bot loop')
         self.thread.start()
 
@@ -92,6 +93,8 @@ class Bot(Configurable):
                 config.gui.view.routine.select(config.routine.index)
                 config.gui.view.details.display_info(config.routine.index)
 
+                print('path', config.path)
+                print('routine', config.routine[config.routine.index])
                 # Execute next Point in the routine
                 element = config.routine[config.routine.index]
                 if self.rune_active and isinstance(element, Point) \
@@ -116,7 +119,8 @@ class Bot(Configurable):
         adjust = self.command_book['adjust']
         adjust(*self.rune_pos).execute()
         time.sleep(0.2)
-        press(self.config['Interact'], 1, down_time=0.2)        # Inherited from Configurable
+        # Inherited from Configurable
+        press(self.config['Interact'], 1, down_time=0.2)
 
         print('\nSolving rune:')
         inferences = []
@@ -139,8 +143,10 @@ class Bot(Configurable):
                         if rune_buff:
                             rune_buff_pos = min(rune_buff, key=lambda p: p[0])
                             target = (
-                                round(rune_buff_pos[0] + config.capture.window['left']),
-                                round(rune_buff_pos[1] + config.capture.window['top'])
+                                round(
+                                    rune_buff_pos[0] + config.capture.window['left']),
+                                round(rune_buff_pos[1] +
+                                      config.capture.window['top'])
                             )
                             click(target, button='right')
                     self.rune_active = False
@@ -241,7 +247,8 @@ class Bot(Configurable):
                     url = lines[i + 2].split('=')[1].strip()
                     self.submodules.append(path)
                     try:
-                        repo.git.clone(url, path)       # First time loading submodule
+                        # First time loading submodule
+                        repo.git.clone(url, path)
                         print(f" -  Initialized submodule '{path}'")
                     except git.exc.GitCommandError:
                         sub_repo = git.Repo(path)
@@ -252,7 +259,8 @@ class Bot(Configurable):
                         if not force:
                             try:                # Restore modified content
                                 sub_repo.git.checkout('stash', '--', '.')
-                                print(f" -  Updated submodule '{path}', restored local changes")
+                                print(
+                                    f" -  Updated submodule '{path}', restored local changes")
                             except git.exc.GitCommandError:
                                 print(f" -  Updated submodule '{path}'")
                         else:

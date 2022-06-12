@@ -4,6 +4,7 @@ import math
 import time
 from src.common import config, settings, utils
 from src.common.vkeys import key_down, key_up, press
+from src.modules.listener import Listener
 
 
 #################################
@@ -15,13 +16,16 @@ class Component:
 
     def __init__(self, *args, **kwargs):
         if len(args) > 1:
-            raise TypeError('Component superclass __init__ only accepts 1 (optional) argument: LOCALS')
+            raise TypeError(
+                'Component superclass __init__ only accepts 1 (optional) argument: LOCALS')
         if len(kwargs) != 0:
-            raise TypeError('Component superclass __init__ does not accept any keyword arguments')
+            raise TypeError(
+                'Component superclass __init__ does not accept any keyword arguments')
         if len(args) == 0:
             self.kwargs = {}
         elif type(args[0]) != dict:
-            raise TypeError("Component superclass __init__ only accepts arguments of type 'dict'.")
+            raise TypeError(
+                "Component superclass __init__ only accepts arguments of type 'dict'.")
         else:
             self.kwargs = args[0].copy()
             self.kwargs.pop('__class__')
@@ -37,7 +41,8 @@ class Component:
     def update(self, *args, **kwargs):
         """Updates this Component's constructor arguments with new arguments."""
 
-        self.__class__(*args, **kwargs)     # Validate arguments before actually updating values
+        # Validate arguments before actually updating values
+        self.__class__(*args, **kwargs)
         self.__init__(*args, **kwargs)
 
     def info(self):
@@ -81,7 +86,8 @@ class Point(Component):
             move = config.bot.command_book['move']
             move(*self.location).execute()
             if self.adjust:
-                adjust = config.bot.command_book.get('adjust')      # TODO: adjust using step('up')?
+                # TODO: adjust using step('up')?
+                adjust = config.bot.command_book.get('adjust')
                 adjust(*self.location).execute()
             for command in self.commands:
                 command.execute()
@@ -243,7 +249,10 @@ class Move(Command):
 
     def main(self):
         counter = self.max_steps
-        path = config.layout.shortest_path(config.player_pos, self.target)
+        if config.layout:
+            path = config.layout.shortest_path(config.player_pos, self.target)
+        else:
+            Listener().toggle_enabled()
         for i, point in enumerate(path):
             toggle = True
             self.prev_direction = ''
@@ -364,5 +373,6 @@ class Buff(Command):
     """Undefined 'buff' command for the default command book."""
 
     def main(self):
-        print("\n[!] 'Buff' command not implemented in current command book, aborting process.")
+        print(
+            "\n[!] 'Buff' command not implemented in current command book, aborting process.")
         config.enabled = False

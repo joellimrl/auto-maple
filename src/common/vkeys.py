@@ -33,6 +33,7 @@ KEY_MAP = {
     'tab': 0x09,
     'enter': 0x0D,
     'shift': 0x10,
+    'right shift': 0x10,
     'ctrl': 0x11,
     'alt': 0x12,
     'caps lock': 0x14,
@@ -202,7 +203,8 @@ def key_up(key):
     if key not in KEY_MAP.keys():
         print(f"Invalid keyboard input: '{key}'.")
     else:
-        x = Input(type=INPUT_KEYBOARD, ki=KeyboardInput(wVk=KEY_MAP[key], dwFlags=KEYEVENTF_KEYUP))
+        x = Input(type=INPUT_KEYBOARD, ki=KeyboardInput(
+            wVk=KEY_MAP[key], dwFlags=KEYEVENTF_KEYUP))
         user32.SendInput(1, ctypes.byref(x), ctypes.sizeof(x))
 
 
